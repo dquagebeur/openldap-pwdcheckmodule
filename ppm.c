@@ -331,7 +331,7 @@ check_password(char *pPasswd, char **ppErrStr, Entry * pEntry)
     char *szErrStr = (char *) ber_memalloc(MEM_INIT_SZ);
     int mem_len = MEM_INIT_SZ;
     int numParam = 0; // Number of params in current configuration
-
+    int minLength;
     int maxLength;
     int useCracklib;
     char cracklibDict[VALUE_MAX_LEN];
@@ -361,6 +361,9 @@ check_password(char *pPasswd, char **ppErrStr, Entry * pEntry)
 
     /* Set default values */
     conf fileConf[CONF_MAX_SIZE] = {
+        {"minLength", typeInt, {.iVal = 0}, 0, 0
+         }
+        ,
         {"maxLength", typeInt, {.iVal = 0}, 0, 0
          }
         ,
@@ -400,6 +403,7 @@ check_password(char *pPasswd, char **ppErrStr, Entry * pEntry)
     /* Read config file */
     read_config_file(fileConf, &numParam, ppm_config_file);
 
+    minLength = getValue(fileConf, numParam, "minLength")->iVal;
     maxLength = getValue(fileConf, numParam, "maxLength")->iVal;
     minQuality = getValue(fileConf, numParam, "minQuality")->iVal;
     checkRDN = getValue(fileConf, numParam, "checkRDN")->iVal;
@@ -418,6 +422,18 @@ check_password(char *pPasswd, char **ppErrStr, Entry * pEntry)
      * It must contains at least min chars of each class
      * It must not contain any char in forbiddenChar */
 
+    if(minLength != 0 && strlen(pPasswd) < minLength) {
+      // constraint is not satisfied... goto fail
+      mem_len = realloc_error_message(&szErrStr, mem_len,
+                                      strlen(PASSWORD_TOO_SHORT_SZ) +
+                                      strlen(pEntry->e_name.bv_val) + 
+                                      2 * sizeof(minLength));
+      sprintf(szErrStr, PASSWORD_TOO_SHORT_SZ, pEntry->e_name.bv_val,
+              (int)strlen(pPasswd), minLength);
+      goto fail;
+      
+    }
+
     if(maxLength != 0 && strlen(pPasswd) > maxLength) {
       // constraint is not satisfied... goto fail
       mem_len = realloc_error_message(&szErrStr, mem_len,
@@ -429,7 +445,6 @@ check_password(char *pPasswd, char **ppErrStr, Entry * pEntry)
       goto fail;
       
     }
-
     for (i = 0; i < strlen(pPasswd); i++) {
 
         int n;

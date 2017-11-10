@@ -38,6 +38,8 @@
 
 #define DEBUG_MSG_MAX_LEN                 256
 
+#define PASSWORD_TOO_SHORT_SZ \
+  "Password for dn=\"%s\" is too short (%d / %d)"
 #define PASSWORD_TOO_LONG_SZ \
   "Password for dn=\"%s\" is too long (%d / %d)"
 #define PASSWORD_QUALITY_SZ \
@@ -77,6 +79,7 @@ typedef struct params {
 // allowed parameters loaded into configuration structure
 // it also contains the type of the corresponding value
 params allowedParameters[8] = {
+    {"^minLength", typeInt},
     {"^maxLength", typeInt},
     {"^minQuality", typeInt},
     {"^checkRDN", typeInt},
