@@ -78,7 +78,7 @@ typedef struct params {
 
 // allowed parameters loaded into configuration structure
 // it also contains the type of the corresponding value
-params allowedParameters[8] = {
+params allowedParameters[9] = {
     {"^minLength", typeInt},
     {"^maxLength", typeInt},
     {"^minQuality", typeInt},
